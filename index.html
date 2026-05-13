@@ -567,6 +567,7 @@
                 <input type="url" id="addBusinessWebsite" placeholder="e.g., https://coconutshack.com">
             </div>
             <button class="btn btn-primary" onclick="addBusiness()">Add Restaurant</button>
+            <button class="btn btn-secondary" onclick="clearAllData()" style="margin-top: 10px;">Clear All Restaurants</button>
             <button class="logout-btn" onclick="logout()">Logout</button>
         </div>
 
@@ -673,6 +674,17 @@
             }
         }
 
+        // Clear all data
+        function clearAllData() {
+            if (!isAdmin) return;
+            
+            if (confirm('⚠️ This will delete ALL restaurants! Are you sure?')) {
+                localStorage.removeItem('islandEatsBusinesses');
+                loadBusinesses();
+                alert('All restaurants cleared! You can now add new ones.');
+            }
+        }
+
         // Admin login
         function openAdminModal() {
             if (isAdmin) {
@@ -709,39 +721,7 @@
             loadBusinesses(); // Reload to hide delete buttons
         }
 
-        // Add some sample data if empty (remove this in production)
-        function initializeSampleData() {
-            const businesses = JSON.parse(localStorage.getItem('islandEatsBusinesses') || '[]');
-            if (businesses.length === 0) {
-                const samples = [
-                    { 
-                        name: 'Coconut Shack', 
-                        cuisine: 'Hawaiian BBQ', 
-                        hours: '11am - 9pm',
-                        phone: '(956) 555-0123',
-                        website: 'https://coconutshack.com'
-                    },
-                    { 
-                        name: 'Tiki Tacos', 
-                        cuisine: 'Tropical Mexican', 
-                        hours: '10am - 10pm',
-                        phone: '(956) 555-0456',
-                        website: 'https://tikitacos.com'
-                    },
-                    { 
-                        name: 'Mango Bay Café', 
-                        cuisine: 'Island Breakfast', 
-                        hours: '7am - 3pm',
-                        phone: '(956) 555-0789',
-                        website: ''
-                    }
-                ];
-                localStorage.setItem('islandEatsBusinesses', JSON.stringify(samples));
-            }
-        }
-
         // Initialize on page load
-        initializeSampleData();
         loadBusinesses();
     </script>
 </body>
