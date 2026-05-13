@@ -86,24 +86,41 @@
             }
         }
 
-        .banner-container {
+        .logo-container {
             display: inline-block;
+            background: var(--white);
+            padding: 30px 50px;
+            border-radius: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            transform: rotate(-2deg);
             margin-bottom: 20px;
         }
 
-        .banner-container img {
-            max-width: 600px;
-            width: 100%;
-            height: auto;
-            display: block;
+        .logo {
+            font-family: 'Righteous', cursive;
+            font-size: 4rem;
+            color: var(--coral);
+            text-shadow: 4px 4px 0 var(--ocean-blue);
+            letter-spacing: 2px;
         }
 
-        .logo-container {
+        .palm-icon {
+            display: inline-block;
+            font-size: 3rem;
+            animation: sway 3s ease-in-out infinite;
+        }
+
+        @keyframes sway {
+            0%, 100% { transform: rotate(-5deg); }
+            50% { transform: rotate(5deg); }
+        }
+
+        .beach-logo-container {
             margin-top: 30px;
             text-align: center;
         }
 
-        .logo-container img {
+        .beach-logo-container img {
             width: 400px;
             max-width: 90%;
             height: auto;
@@ -112,7 +129,7 @@
             transition: transform 0.3s ease;
         }
 
-        .logo-container img:hover {
+        .beach-logo-container img:hover {
             transform: scale(1.02);
         }
 
@@ -446,11 +463,11 @@
         }
 
         @media (max-width: 768px) {
-            .banner-container img {
-                max-width: 100%;
+            .logo {
+                font-size: 2.5rem;
             }
 
-            .logo-container img {
+            .beach-logo-container img {
                 width: 300px;
             }
 
@@ -473,14 +490,18 @@
 
     <div class="container">
         <header>
-            <!-- Your Banner Image (the text one) -->
-            <div class="banner-container">
-                <img src="banner.png" alt="Island Eats">
-            </div>
-
-            <!-- Your Logo (the big beach one) -->
             <div class="logo-container">
-                <img src="logo.jpg" alt="Island Eats Logo">
+                <div class="logo">
+                    <span class="palm-icon">🌴</span>
+                    ISLAND EATS
+                    <span class="palm-icon">🌺</span>
+                </div>
+            </div>
+            <div class="tagline">Savor the convenience and experience local flavors at your doorstep! 🏝️</div>
+            
+            <!-- Your Big Beach Logo Added Below -->
+            <div class="beach-logo-container">
+                <img src="5839375496797532300.jpg" alt="Island Eats Logo">
             </div>
         </header>
 
