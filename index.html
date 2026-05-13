@@ -298,15 +298,15 @@
 
         .businesses-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 30px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
             padding: 20px;
         }
 
         .business-card {
             background: var(--white);
-            border-radius: 25px;
-            padding: 30px;
+            border-radius: 20px;
+            padding: 20px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
             position: relative;
@@ -350,35 +350,73 @@
 
         .business-name {
             font-family: 'Righteous', cursive;
-            font-size: 1.8rem;
+            font-size: 1.4rem;
             color: var(--dark);
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
 
         .business-cuisine {
             color: var(--ocean-blue);
-            font-size: 1.1rem;
+            font-size: 0.95rem;
             font-weight: 600;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
         }
 
         .business-hours {
             color: #64748B;
-            font-size: 0.95rem;
+            font-size: 0.85rem;
+            margin-bottom: 6px;
+        }
+
+        .business-contact {
+            display: flex;
+            flex-direction: row;
+            gap: 12px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 2px solid #E2E8F0;
+            justify-content: center;
+        }
+
+        .business-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            color: var(--ocean-blue);
+            text-decoration: none;
+            font-size: 1.5rem;
+            background: #F0F9FF;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .business-link:hover {
+            background: var(--ocean-blue);
+            transform: scale(1.1);
+        }
+
+        .business-link:hover .business-link-icon {
+            filter: grayscale(100%) brightness(200%);
+        }
+
+        .business-link-icon {
+            font-size: 1.3rem;
         }
 
         .delete-btn {
             display: none;
             position: absolute;
-            top: 15px;
-            right: 15px;
+            top: 10px;
+            right: 10px;
             background: var(--sunset-pink);
             color: var(--white);
             border: none;
-            width: 35px;
-            height: 35px;
+            width: 30px;
+            height: 30px;
             border-radius: 50%;
-            font-size: 1.2rem;
+            font-size: 1rem;
             cursor: pointer;
             transition: all 0.3s ease;
         }
@@ -520,6 +558,14 @@
                 <label>Hours</label>
                 <input type="text" id="addBusinessHours" placeholder="e.g., 11am - 9pm">
             </div>
+            <div class="input-group">
+                <label>Phone Number</label>
+                <input type="tel" id="addBusinessPhone" placeholder="e.g., (956) 555-1234">
+            </div>
+            <div class="input-group">
+                <label>Website</label>
+                <input type="url" id="addBusinessWebsite" placeholder="e.g., https://coconutshack.com">
+            </div>
             <button class="btn btn-primary" onclick="addBusiness()">Add Restaurant</button>
             <button class="logout-btn" onclick="logout()">Logout</button>
         </div>
@@ -568,14 +614,24 @@
                 return;
             }
 
-            grid.innerHTML = businesses.map((business, index) => `
-                <div class="business-card">
-                    <button class="delete-btn ${isAdmin ? 'admin-mode' : ''}" onclick="deleteBusiness(${index})">✕</button>
-                    <div class="business-name">${business.name}</div>
-                    <div class="business-cuisine">🍴 ${business.cuisine}</div>
-                    <div class="business-hours">⏰ ${business.hours}</div>
-                </div>
-            `).join('');
+            grid.innerHTML = businesses.map((business, index) => {
+                const contactHTML = (business.phone || business.website) ? `
+                    <div class="business-contact">
+                        ${business.phone ? `<a href="tel:${business.phone}" class="business-link" title="Call: ${business.phone}"><span class="business-link-icon">📞</span></a>` : ''}
+                        ${business.website ? `<a href="${business.website}" target="_blank" class="business-link" title="Visit Website"><span class="business-link-icon">🌐</span></a>` : ''}
+                    </div>
+                ` : '';
+                
+                return `
+                    <div class="business-card">
+                        <button class="delete-btn ${isAdmin ? 'admin-mode' : ''}" onclick="deleteBusiness(${index})">✕</button>
+                        <div class="business-name">${business.name}</div>
+                        <div class="business-cuisine">🍴 ${business.cuisine}</div>
+                        <div class="business-hours">⏰ ${business.hours}</div>
+                        ${contactHTML}
+                    </div>
+                `;
+            }).join('');
         }
 
         // Add new business
@@ -583,20 +639,24 @@
             const name = document.getElementById('addBusinessName').value.trim();
             const cuisine = document.getElementById('addBusinessCuisine').value.trim();
             const hours = document.getElementById('addBusinessHours').value.trim();
+            const phone = document.getElementById('addBusinessPhone').value.trim();
+            const website = document.getElementById('addBusinessWebsite').value.trim();
 
             if (!name || !cuisine || !hours) {
-                alert('Please fill in all fields!');
+                alert('Please fill in Name, Cuisine, and Hours (required fields)!');
                 return;
             }
 
             const businesses = JSON.parse(localStorage.getItem('islandEatsBusinesses') || '[]');
-            businesses.push({ name, cuisine, hours });
+            businesses.push({ name, cuisine, hours, phone, website });
             localStorage.setItem('islandEatsBusinesses', JSON.stringify(businesses));
 
             // Clear form
             document.getElementById('addBusinessName').value = '';
             document.getElementById('addBusinessCuisine').value = '';
             document.getElementById('addBusinessHours').value = '';
+            document.getElementById('addBusinessPhone').value = '';
+            document.getElementById('addBusinessWebsite').value = '';
 
             loadBusinesses();
         }
@@ -654,9 +714,27 @@
             const businesses = JSON.parse(localStorage.getItem('islandEatsBusinesses') || '[]');
             if (businesses.length === 0) {
                 const samples = [
-                    { name: 'Coconut Shack', cuisine: 'Hawaiian BBQ', hours: '11am - 9pm' },
-                    { name: 'Tiki Tacos', cuisine: 'Tropical Mexican', hours: '10am - 10pm' },
-                    { name: 'Mango Bay Café', cuisine: 'Island Breakfast', hours: '7am - 3pm' }
+                    { 
+                        name: 'Coconut Shack', 
+                        cuisine: 'Hawaiian BBQ', 
+                        hours: '11am - 9pm',
+                        phone: '(956) 555-0123',
+                        website: 'https://coconutshack.com'
+                    },
+                    { 
+                        name: 'Tiki Tacos', 
+                        cuisine: 'Tropical Mexican', 
+                        hours: '10am - 10pm',
+                        phone: '(956) 555-0456',
+                        website: 'https://tikitacos.com'
+                    },
+                    { 
+                        name: 'Mango Bay Café', 
+                        cuisine: 'Island Breakfast', 
+                        hours: '7am - 3pm',
+                        phone: '(956) 555-0789',
+                        website: ''
+                    }
                 ];
                 localStorage.setItem('islandEatsBusinesses', JSON.stringify(samples));
             }
