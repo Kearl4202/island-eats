@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Island Eats - Food Delivery Paradise</title>
+    <link href="https://fonts.googleapis.com/css2?family=Righteous&family=Fredoka:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --ocean-blue: #0EA5E9;
+            --coral: #F97316;
+            --sunset-pink: #FB7185;
+            --lime: #84CC16;
+            --sand: #FEF3C7;
+            --white: #FFFFFF;
+            --dark: #1E293B;
+        }
+
+        body {
+            font-family: 'Fredoka', sans-serif;
+            background: linear-gradient(135deg, #0EA5E9 0%, #06B6D4 100%);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Animated wave background */
+        body::before {
+            content: '';
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 200px;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120"><path d="M0,40 C300,100 600,20 900,60 C1050,80 1200,40 1200,40 L1200,120 L0,120 Z" fill="%2306B6D4" opacity="0.3"/></svg>') repeat-x;
+            animation: wave 15s linear infinite;
+            z-index: 0;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 150px;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120"><path d="M0,60 C300,30 600,90 900,50 C1050,30 1200,60 1200,60 L1200,120 L0,120 Z" fill="%2384CC16" opacity="0.2"/></svg>') repeat-x;
+            animation: wave 12s linear infinite reverse;
+            z-index: 0;
+        }
+
+        @keyframes wave {
+            0% { background-position: 0 0; }
+            100% { background-position: 1200px 0; }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            padding: 40px 20px;
+            animation: slideDown 0.8s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .logo-container {
+            display: inline-block;
+            background: var(--white);
+            padding: 30px 50px;
+            border-radius: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            transform: rotate(-2deg);
+            margin-bottom: 20px;
+        }
+
+        .logo {
+            font-family: 'Righteous', cursive;
+            font-size: 4rem;
+            color: var(--coral);
+            text-shadow: 4px 4px 0 var(--ocean-blue);
+            letter-spacing: 2px;
+        }
+
+        .palm-icon {
+            display: inline-block;
+            font-size: 3rem;
+            animation: sway 3s ease-in-out infinite;
+        }
+
+        @keyframes sway {
+            0%, 100% { transform: rotate(-5deg); }
+            50% { transform: rotate(5deg); }
+        }
+
+        .tagline {
+            font-size: 1.5rem;
+            color: var(--white);
+            font-weight: 600;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            margin-top: 20px;
+        }
+
+        /* Admin Button */
+        .admin-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--sunset-pink);
+            color: var(--white);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-family: 'Fredoka', sans-serif;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(251, 113, 133, 0.4);
+            transition: all 0.3s ease;
+            z-index: 100;
+        }
+
+        .admin-btn:hover {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 6px 20px rgba(251, 113, 133, 0.6);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--white);
+            padding: 40px;
+            border-radius: 30px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: popIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        @keyframes popIn {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .modal h2 {
+            font-family: 'Righteous', cursive;
+            color: var(--coral);
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            color: var(--dark);
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 3px solid var(--ocean-blue);
+            border-radius: 15px;
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--coral);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.2);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 14px 20px;
+            border: none;
+            border-radius: 15px;
+            font-family: 'Fredoka', sans-serif;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: var(--lime);
+            color: var(--dark);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(132, 204, 22, 0.4);
+        }
+
+        .btn-secondary {
+            background: #E2E8F0;
+            color: var(--dark);
+        }
+
+        .btn-secondary:hover {
+            background: #CBD5E1;
+        }
+
+        /* Businesses Section */
+        .businesses-section {
+            margin-top: 60px;
+        }
+
+        .section-title {
+            font-family: 'Righteous', cursive;
+            font-size: 2.5rem;
+            color: var(--white);
+            text-align: center;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.3);
+            margin-bottom: 40px;
+        }
+
+        .businesses-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 30px;
+            padding: 20px;
+        }
+
+        .business-card {
+            background: var(--white);
+            border-radius: 25px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            position: relative;
+            overflow: hidden;
+            animation: fadeInUp 0.6s ease-out backwards;
+        }
+
+        .business-card:nth-child(odd) {
+            animation-delay: 0.1s;
+        }
+
+        .business-card:nth-child(even) {
+            animation-delay: 0.2s;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .business-card:hover {
+            transform: translateY(-10px) rotate(1deg);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .business-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, var(--coral), var(--sunset-pink), var(--lime));
+        }
+
+        .business-name {
+            font-family: 'Righteous', cursive;
+            font-size: 1.8rem;
+            color: var(--dark);
+            margin-bottom: 10px;
+        }
+
+        .business-cuisine {
+            color: var(--ocean-blue);
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .business-hours {
+            color: #64748B;
+            font-size: 0.95rem;
+        }
+
+        .delete-btn {
+            display: none;
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: var(--sunset-pink);
+            color: var(--white);
+            border: none;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .business-card:hover .delete-btn.admin-mode {
+            display: block;
+        }
+
+        .delete-btn:hover {
+            transform: scale(1.1) rotate(90deg);
+            background: #DC2626;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--white);
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.7;
+        }
+
+        .empty-state-text {
+            font-size: 1.5rem;
+            font-weight: 600;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Admin Panel */
+        .admin-panel {
+            display: none;
+            background: var(--white);
+            border-radius: 25px;
+            padding: 30px;
+            margin: 30px auto;
+            max-width: 600px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .admin-panel.active {
+            display: block;
+            animation: slideInUp 0.5s ease-out;
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .admin-panel h3 {
+            font-family: 'Righteous', cursive;
+            color: var(--coral);
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+        }
+
+        .logout-btn {
+            background: var(--sunset-pink);
+            color: var(--white);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 15px;
+            font-family: 'Fredoka', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .logout-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(251, 113, 133, 0.4);
+        }
+
+        @media (max-width: 768px) {
+            .logo {
+                font-size: 2.5rem;
+            }
+
+            .tagline {
+                font-size: 1.2rem;
+            }
+
+            .businesses-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .section-title {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="admin-btn" onclick="openAdminModal()">🔐 Admin</button>
+
+    <div class="container">
+        <header>
+            <div class="logo-container">
+                <div class="logo">
+                    <span class="palm-icon">🌴</span>
+                    ISLAND EATS
+                    <span class="palm-icon">🌺</span>
+                </div>
+            </div>
+            <div class="tagline">Your Tropical Food Delivery Paradise! 🏝️</div>
+        </header>
+
+        <!-- Admin Panel (hidden by default) -->
+        <div class="admin-panel" id="adminPanel">
+            <h3>🏝️ Add New Restaurant</h3>
+            <div class="input-group">
+                <label>Restaurant Name</label>
+                <input type="text" id="addBusinessName" placeholder="e.g., Coconut Shack">
+            </div>
+            <div class="input-group">
+                <label>Cuisine Type</label>
+                <input type="text" id="addBusinessCuisine" placeholder="e.g., Hawaiian BBQ">
+            </div>
+            <div class="input-group">
+                <label>Hours</label>
+                <input type="text" id="addBusinessHours" placeholder="e.g., 11am - 9pm">
+            </div>
+            <button class="btn btn-primary" onclick="addBusiness()">Add Restaurant</button>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+
+        <!-- Businesses Section -->
+        <section class="businesses-section">
+            <h2 class="section-title">🍽️ Our Island Partners</h2>
+            <div class="businesses-grid" id="businessesGrid">
+                <!-- Businesses will be loaded here -->
+            </div>
+        </section>
+    </div>
+
+    <!-- Admin Login Modal -->
+    <div class="modal" id="loginModal">
+        <div class="modal-content">
+            <h2>🔐 Admin Login</h2>
+            <div class="input-group">
+                <label>Password</label>
+                <input type="password" id="adminPassword" placeholder="Enter admin password">
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-primary" onclick="login()">Login</button>
+                <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simple admin system - In production, use proper backend authentication
+        const ADMIN_PASSWORD = 'island2024'; // Change this password!
+        let isAdmin = false;
+
+        // Load businesses from localStorage
+        function loadBusinesses() {
+            const businesses = JSON.parse(localStorage.getItem('islandEatsBusinesses') || '[]');
+            const grid = document.getElementById('businessesGrid');
+            
+            if (businesses.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🏝️</div>
+                        <div class="empty-state-text">No restaurants yet! Admin can add them above.</div>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = businesses.map((business, index) => `
+                <div class="business-card">
+                    <button class="delete-btn ${isAdmin ? 'admin-mode' : ''}" onclick="deleteBusiness(${index})">✕</button>
+                    <div class="business-name">${business.name}</div>
+                    <div class="business-cuisine">🍴 ${business.cuisine}</div>
+                    <div class="business-hours">⏰ ${business.hours}</div>
+                </div>
+            `).join('');
+        }
+
+        // Add new business
+        function addBusiness() {
+            const name = document.getElementById('addBusinessName').value.trim();
+            const cuisine = document.getElementById('addBusinessCuisine').value.trim();
+            const hours = document.getElementById('addBusinessHours').value.trim();
+
+            if (!name || !cuisine || !hours) {
+                alert('Please fill in all fields!');
+                return;
+            }
+
+            const businesses = JSON.parse(localStorage.getItem('islandEatsBusinesses') || '[]');
+            businesses.push({ name, cuisine, hours });
+            localStorage.setItem('islandEatsBusinesses', JSON.stringify(businesses));
+
+            // Clear form
+            document.getElementById('addBusinessName').value = '';
+            document.getElementById('addBusinessCuisine').value = '';
+            document.getElementById('addBusinessHours').value = '';
+
+            loadBusinesses();
+        }
+
+        // Delete business
+        function deleteBusiness(index) {
+            if (!isAdmin) return;
+            
+            if (confirm('Remove this restaurant?')) {
+                const businesses = JSON.parse(localStorage.getItem('islandEatsBusinesses') || '[]');
+                businesses.splice(index, 1);
+                localStorage.setItem('islandEatsBusinesses', JSON.stringify(businesses));
+                loadBusinesses();
+            }
+        }
+
+        // Admin login
+        function openAdminModal() {
+            if (isAdmin) {
+                // Already logged in, scroll to admin panel
+                document.getElementById('adminPanel').scrollIntoView({ behavior: 'smooth' });
+                return;
+            }
+            document.getElementById('loginModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('loginModal').classList.remove('active');
+            document.getElementById('adminPassword').value = '';
+        }
+
+        function login() {
+            const password = document.getElementById('adminPassword').value;
+            
+            if (password === ADMIN_PASSWORD) {
+                isAdmin = true;
+                closeModal();
+                document.getElementById('adminPanel').classList.add('active');
+                document.querySelector('.admin-btn').textContent = '✅ Admin';
+                loadBusinesses(); // Reload to show delete buttons
+            } else {
+                alert('Incorrect password!');
+            }
+        }
+
+        function logout() {
+            isAdmin = false;
+            document.getElementById('adminPanel').classList.remove('active');
+            document.querySelector('.admin-btn').textContent = '🔐 Admin';
+            loadBusinesses(); // Reload to hide delete buttons
+        }
+
+        // Add some sample data if empty (remove this in production)
+        function initializeSampleData() {
+            const businesses = JSON.parse(localStorage.getItem('islandEatsBusinesses') || '[]');
+            if (businesses.length === 0) {
+                const samples = [
+                    { name: 'Coconut Shack', cuisine: 'Hawaiian BBQ', hours: '11am - 9pm' },
+                    { name: 'Tiki Tacos', cuisine: 'Tropical Mexican', hours: '10am - 10pm' },
+                    { name: 'Mango Bay Café', cuisine: 'Island Breakfast', hours: '7am - 3pm' }
+                ];
+                localStorage.setItem('islandEatsBusinesses', JSON.stringify(samples));
+            }
+        }
+
+        // Initialize on page load
+        initializeSampleData();
+        loadBusinesses();
+    </script>
+</body>
+</html>
