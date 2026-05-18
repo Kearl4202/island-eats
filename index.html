@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Island Eats - Food Delivery</title>
+    <title>Island Eats SPI - Food Delivery</title>
     <link href="https://fonts.googleapis.com/css2?family=Righteous&family=Fredoka:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
         * {
@@ -460,6 +460,7 @@
             text-align: center;
             padding: 60px 20px;
             color: var(--white);
+            grid-column: 1 / -1;
         }
 
         .empty-state-icon {
@@ -563,7 +564,7 @@
             </div>
             <div class="tagline">Savor the convenience and experience local flavors at your doorstep! 🏝️</div>
             
-            <!-- Your Big Beach Logo Added Below -->
+            <!-- Your Big Beach Logo -->
             <div class="beach-logo-container">
                 <img src="logo.jpg" alt="Island Eats Logo">
             </div>
@@ -602,7 +603,10 @@
         <section class="businesses-section">
             <h2 class="section-title">🍽️ Our Island Partners</h2>
             <div class="businesses-grid" id="businessesGrid">
-                <!-- Businesses will be loaded here -->
+                <div class="empty-state">
+                    <div class="empty-state-icon">⏳</div>
+                    <div class="empty-state-text">Loading restaurants...</div>
+                </div>
             </div>
         </section>
     </div>
@@ -623,14 +627,32 @@
     </div>
 
     <script>
-        // Simple admin system - In production, use proper backend authentication
-        const ADMIN_PASSWORD = 'island2024'; // Change this password!
+        // Admin system
+        const ADMIN_PASSWORD = 'island2024';
         let isAdmin = false;
-        let editingIndex = -1; // Track which restaurant is being edited
+        let editingId = null;
 
-        // Load businesses from localStorage
-        function loadBusinesses() {
-            const businesses = JSON.parse(localStorage.getItem('islandEatsBusinesses') || '[]');
+        // Load restaurants on page load
+        loadBusinesses();
+
+        // API calls
+        async function loadBusinesses() {
+            try {
+                const response = await fetch('/api/restaurants');
+                const businesses = await response.json();
+                displayBusinesses(businesses);
+            } catch (error) {
+                console.error('Error loading restaurants:', error);
+                document.getElementById('businessesGrid').innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">❌</div>
+                        <div class="empty-state-text">Error loading restaurants</div>
+                    </div>
+                `;
+            }
+        }
+
+        function displayBusinesses(businesses) {
             const grid = document.getElementById('businessesGrid');
             
             if (businesses.length === 0) {
@@ -643,7 +665,7 @@
                 return;
             }
 
-            grid.innerHTML = businesses.map((business, index) => {
+            grid.innerHTML = businesses.map((business) => {
                 const contactHTML = (business.phone || business.website) ? `
                     <div class="business-contact">
                         ${business.phone ? `<a href="tel:${business.phone}" class="business-link" title="Call: ${business.phone}"><span class="business-link-icon">📞</span></a>` : ''}
@@ -653,8 +675,8 @@
                 
                 return `
                     <div class="business-card">
-                        <button class="edit-btn ${isAdmin ? 'admin-mode' : ''}" onclick="editBusiness(${index})">✏️</button>
-                        <button class="delete-btn ${isAdmin ? 'admin-mode' : ''}" onclick="deleteBusiness(${index})">✕</button>
+                        <button class="edit-btn ${isAdmin ? 'admin-mode' : ''}" onclick="editBusiness('${business.id}')">✏️</button>
+                        <button class="delete-btn ${isAdmin ? 'admin-mode' : ''}" onclick="deleteBusiness('${business.id}')">✕</button>
                         <div class="business-name">${business.name}</div>
                         <div class="business-cuisine">🍴 ${business.cuisine}</div>
                         <div class="business-hours">⏰ ${business.hours}</div>
@@ -664,8 +686,7 @@
             }).join('');
         }
 
-        // Add new business or update existing
-        function addBusiness() {
+        async function addBusiness() {
             const name = document.getElementById('addBusinessName').value.trim();
             const cuisine = document.getElementById('addBusinessCuisine').value.trim();
             const hours = document.getElementById('addBusinessHours').value.trim();
@@ -677,52 +698,98 @@
                 return;
             }
 
-            const businesses = JSON.parse(localStorage.getItem('islandEatsBusinesses') || '[]');
-            
-            if (editingIndex >= 0) {
-                // Update existing restaurant
-                businesses[editingIndex] = { name, cuisine, hours, phone, website };
-                editingIndex = -1;
-                updateFormMode(false);
-            } else {
-                // Add new restaurant
-                businesses.push({ name, cuisine, hours, phone, website });
+            try {
+                const method = editingId ? 'PUT' : 'POST';
+                const url = editingId ? `/api/restaurants/${editingId}` : '/api/restaurants';
+                
+                const response = await fetch(url, {
+                    method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, cuisine, hours, phone, website })
+                });
+
+                if (response.ok) {
+                    editingId = null;
+                    updateFormMode(false);
+                    clearForm();
+                    loadBusinesses();
+                }
+            } catch (error) {
+                alert('Error saving restaurant');
+                console.error(error);
             }
-            
-            localStorage.setItem('islandEatsBusinesses', JSON.stringify(businesses));
-            clearForm();
-            loadBusinesses();
         }
 
-        // Edit existing business
-        function editBusiness(index) {
+        async function editBusiness(id) {
             if (!isAdmin) return;
             
-            const businesses = JSON.parse(localStorage.getItem('islandEatsBusinesses') || '[]');
-            const business = businesses[index];
-            
-            // Fill form with existing data
-            document.getElementById('addBusinessName').value = business.name || '';
-            document.getElementById('addBusinessCuisine').value = business.cuisine || '';
-            document.getElementById('addBusinessHours').value = business.hours || '';
-            document.getElementById('addBusinessPhone').value = business.phone || '';
-            document.getElementById('addBusinessWebsite').value = business.website || '';
-            
-            editingIndex = index;
-            updateFormMode(true);
-            
-            // Scroll to form
-            document.getElementById('adminPanel').scrollIntoView({ behavior: 'smooth' });
+            try {
+                const response = await fetch('/api/restaurants');
+                const businesses = await response.json();
+                const business = businesses.find(b => b.id === id);
+                
+                if (business) {
+                    document.getElementById('addBusinessName').value = business.name || '';
+                    document.getElementById('addBusinessCuisine').value = business.cuisine || '';
+                    document.getElementById('addBusinessHours').value = business.hours || '';
+                    document.getElementById('addBusinessPhone').value = business.phone || '';
+                    document.getElementById('addBusinessWebsite').value = business.website || '';
+                    
+                    editingId = id;
+                    updateFormMode(true);
+                    document.getElementById('adminPanel').scrollIntoView({ behavior: 'smooth' });
+                }
+            } catch (error) {
+                alert('Error loading restaurant');
+                console.error(error);
+            }
         }
 
-        // Cancel editing
+        async function deleteBusiness(id) {
+            if (!isAdmin) return;
+            
+            if (confirm('Remove this restaurant?')) {
+                try {
+                    const response = await fetch(`/api/restaurants/${id}`, {
+                        method: 'DELETE'
+                    });
+                    
+                    if (response.ok) {
+                        loadBusinesses();
+                    }
+                } catch (error) {
+                    alert('Error deleting restaurant');
+                    console.error(error);
+                }
+            }
+        }
+
+        async function clearAllData() {
+            if (!isAdmin) return;
+            
+            if (confirm('⚠️ This will delete ALL restaurants! Are you sure?')) {
+                try {
+                    const response = await fetch('/api/restaurants', {
+                        method: 'DELETE'
+                    });
+                    
+                    if (response.ok) {
+                        loadBusinesses();
+                        alert('All restaurants cleared!');
+                    }
+                } catch (error) {
+                    alert('Error clearing restaurants');
+                    console.error(error);
+                }
+            }
+        }
+
         function cancelEdit() {
-            editingIndex = -1;
+            editingId = null;
             clearForm();
             updateFormMode(false);
         }
 
-        // Clear form fields
         function clearForm() {
             document.getElementById('addBusinessName').value = '';
             document.getElementById('addBusinessCuisine').value = '';
@@ -731,7 +798,6 @@
             document.getElementById('addBusinessWebsite').value = '';
         }
 
-        // Update form UI for add/edit mode
         function updateFormMode(isEditing) {
             const title = document.getElementById('adminPanelTitle');
             const submitBtn = document.getElementById('submitBtn');
@@ -748,33 +814,9 @@
             }
         }
 
-        // Delete business
-        function deleteBusiness(index) {
-            if (!isAdmin) return;
-            
-            if (confirm('Remove this restaurant?')) {
-                const businesses = JSON.parse(localStorage.getItem('islandEatsBusinesses') || '[]');
-                businesses.splice(index, 1);
-                localStorage.setItem('islandEatsBusinesses', JSON.stringify(businesses));
-                loadBusinesses();
-            }
-        }
-
-        // Clear all data
-        function clearAllData() {
-            if (!isAdmin) return;
-            
-            if (confirm('⚠️ This will delete ALL restaurants! Are you sure?')) {
-                localStorage.removeItem('islandEatsBusinesses');
-                loadBusinesses();
-                alert('All restaurants cleared! You can now add new ones.');
-            }
-        }
-
-        // Admin login
+        // Admin login/logout
         function openAdminModal() {
             if (isAdmin) {
-                // Already logged in, scroll to admin panel
                 document.getElementById('adminPanel').scrollIntoView({ behavior: 'smooth' });
                 return;
             }
@@ -794,7 +836,7 @@
                 closeModal();
                 document.getElementById('adminPanel').classList.add('active');
                 document.querySelector('.admin-btn').textContent = '✅ Admin';
-                loadBusinesses(); // Reload to show delete buttons
+                loadBusinesses();
             } else {
                 alert('Incorrect password!');
             }
@@ -802,16 +844,13 @@
 
         function logout() {
             isAdmin = false;
-            editingIndex = -1;
+            editingId = null;
             clearForm();
             updateFormMode(false);
             document.getElementById('adminPanel').classList.remove('active');
             document.querySelector('.admin-btn').textContent = '🔐 Admin';
-            loadBusinesses(); // Reload to hide delete/edit buttons
+            loadBusinesses();
         }
-
-        // Initialize on page load
-        loadBusinesses();
     </script>
 </body>
 </html>
