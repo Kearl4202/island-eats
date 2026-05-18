@@ -1,7 +1,15 @@
 {
   "name": "island-eats",
   "version": "1.0.0",
+  "description": "Island Eats Food Delivery Website",
+  "main": "server.js",
   "scripts": {
-    "start": "npx serve -s . -l $PORT"
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
