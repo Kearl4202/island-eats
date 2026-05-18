@@ -430,6 +430,32 @@
             background: #DC2626;
         }
 
+        .edit-btn {
+            display: none;
+            position: absolute;
+            top: 10px;
+            right: 45px;
+            background: var(--lime);
+            color: var(--dark);
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .business-card:hover .edit-btn.admin-mode {
+            display: block;
+        }
+
+        .edit-btn:hover {
+            transform: scale(1.1);
+            background: #65A30D;
+            color: var(--white);
+        }
+
         .empty-state {
             text-align: center;
             padding: 60px 20px;
@@ -539,13 +565,13 @@
             
             <!-- Your Big Beach Logo Added Below -->
             <div class="beach-logo-container">
-                <img src="5839375496797532300.jpg" alt="Island Eats Logo">
+                <img src="logo.jpg" alt="Island Eats Logo">
             </div>
         </header>
 
         <!-- Admin Panel (hidden by default) -->
         <div class="admin-panel" id="adminPanel">
-            <h3>🏝️ Add New Restaurant</h3>
+            <h3 id="adminPanelTitle">🏝️ Add New Restaurant</h3>
             <div class="input-group">
                 <label>Restaurant Name</label>
                 <input type="text" id="addBusinessName" placeholder="e.g., Coconut Shack">
@@ -566,7 +592,8 @@
                 <label>Website</label>
                 <input type="url" id="addBusinessWebsite" placeholder="e.g., https://coconutshack.com">
             </div>
-            <button class="btn btn-primary" onclick="addBusiness()">Add Restaurant</button>
+            <button class="btn btn-primary" id="submitBtn" onclick="addBusiness()">Add Restaurant</button>
+            <button class="btn btn-secondary" id="cancelEditBtn" onclick="cancelEdit()" style="margin-top: 10px; display: none;">Cancel Edit</button>
             <button class="btn btn-secondary" onclick="clearAllData()" style="margin-top: 10px;">Clear All Restaurants</button>
             <button class="logout-btn" onclick="logout()">Logout</button>
         </div>
@@ -599,6 +626,7 @@
         // Simple admin system - In production, use proper backend authentication
         const ADMIN_PASSWORD = 'island2024'; // Change this password!
         let isAdmin = false;
+        let editingIndex = -1; // Track which restaurant is being edited
 
         // Load businesses from localStorage
         function loadBusinesses() {
@@ -625,6 +653,7 @@
                 
                 return `
                     <div class="business-card">
+                        <button class="edit-btn ${isAdmin ? 'admin-mode' : ''}" onclick="editBusiness(${index})">✏️</button>
                         <button class="delete-btn ${isAdmin ? 'admin-mode' : ''}" onclick="deleteBusiness(${index})">✕</button>
                         <div class="business-name">${business.name}</div>
                         <div class="business-cuisine">🍴 ${business.cuisine}</div>
@@ -635,7 +664,7 @@
             }).join('');
         }
 
-        // Add new business
+        // Add new business or update existing
         function addBusiness() {
             const name = document.getElementById('addBusinessName').value.trim();
             const cuisine = document.getElementById('addBusinessCuisine').value.trim();
@@ -649,17 +678,74 @@
             }
 
             const businesses = JSON.parse(localStorage.getItem('islandEatsBusinesses') || '[]');
-            businesses.push({ name, cuisine, hours, phone, website });
+            
+            if (editingIndex >= 0) {
+                // Update existing restaurant
+                businesses[editingIndex] = { name, cuisine, hours, phone, website };
+                editingIndex = -1;
+                updateFormMode(false);
+            } else {
+                // Add new restaurant
+                businesses.push({ name, cuisine, hours, phone, website });
+            }
+            
             localStorage.setItem('islandEatsBusinesses', JSON.stringify(businesses));
+            clearForm();
+            loadBusinesses();
+        }
 
-            // Clear form
+        // Edit existing business
+        function editBusiness(index) {
+            if (!isAdmin) return;
+            
+            const businesses = JSON.parse(localStorage.getItem('islandEatsBusinesses') || '[]');
+            const business = businesses[index];
+            
+            // Fill form with existing data
+            document.getElementById('addBusinessName').value = business.name || '';
+            document.getElementById('addBusinessCuisine').value = business.cuisine || '';
+            document.getElementById('addBusinessHours').value = business.hours || '';
+            document.getElementById('addBusinessPhone').value = business.phone || '';
+            document.getElementById('addBusinessWebsite').value = business.website || '';
+            
+            editingIndex = index;
+            updateFormMode(true);
+            
+            // Scroll to form
+            document.getElementById('adminPanel').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Cancel editing
+        function cancelEdit() {
+            editingIndex = -1;
+            clearForm();
+            updateFormMode(false);
+        }
+
+        // Clear form fields
+        function clearForm() {
             document.getElementById('addBusinessName').value = '';
             document.getElementById('addBusinessCuisine').value = '';
             document.getElementById('addBusinessHours').value = '';
             document.getElementById('addBusinessPhone').value = '';
             document.getElementById('addBusinessWebsite').value = '';
+        }
 
-            loadBusinesses();
+        // Update form UI for add/edit mode
+        function updateFormMode(isEditing) {
+            const title = document.getElementById('adminPanelTitle');
+            const submitBtn = document.getElementById('submitBtn');
+            const cancelBtn = document.getElementById('cancelEditBtn');
+            
+            if (isEditing) {
+                title.textContent = '✏️ Edit Restaurant';
+                submitBtn.textContent = 'Update Restaurant';
+                cancelBtn.style.display = 'block';
+            } else {
+                title.textContent = '🏝️ Add New Restaurant';
+                submitBtn.textContent = 'Add Restaurant';
+                cancelBtn.style.display = 'none';
+            }
         }
 
         // Delete business
@@ -716,9 +802,12 @@
 
         function logout() {
             isAdmin = false;
+            editingIndex = -1;
+            clearForm();
+            updateFormMode(false);
             document.getElementById('adminPanel').classList.remove('active');
             document.querySelector('.admin-btn').textContent = '🔐 Admin';
-            loadBusinesses(); // Reload to hide delete buttons
+            loadBusinesses(); // Reload to hide delete/edit buttons
         }
 
         // Initialize on page load
